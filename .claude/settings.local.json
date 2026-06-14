@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(java -version)",
+      "Bash(javac -version)",
+      "Bash(mvn -version)",
+      "Bash(echo \"$ANDROID_HOME:-<unset>\")",
+      "Bash(gradle -version)",
+      "Bash(rm -rf build/test-classes)",
+      "Bash(javac -d build/test-classes src/com/twansoftware/budgetplannerpro/entity/Budget.java src/com/twansoftware/budgetplannerpro/entity/Credit.java src/com/twansoftware/budgetplannerpro/entity/Debit.java src/com/twansoftware/budgetplannerpro/iface/Transaction.java src/com/twansoftware/budgetplannerpro/iface/CursorConvertable.java src/com/twansoftware/budgetplannerpro/dao/BudgetDAO.java test/android/content/Context.java test/android/content/ContentValues.java test/android/database/Cursor.java test/android/database/sqlite/SQLiteDatabase.java test/android/database/sqlite/SQLiteOpenHelper.java test/roboguice/inject/ContextSingleton.java test/roboguice/util/Ln.java test/javax/inject/Inject.java test/com/twansoftware/budgetplannerpro/dao/BudgetDAOTest.java)",
+      "Bash(java -cp build/test-classes com.twansoftware.budgetplannerpro.dao.BudgetDAOTest)",
+      "Bash(rm -rf build)",
+      "Bash(mkdir -p build/test-classes)",
+      "Bash(cd:*)"
+    ]
+  }
+}
