@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.twansoftware.budgetplannerpro.service.BudgetService;
+import com.twansoftware.budgetplannerpro.util.SafeUiCallback;
 import com.twansoftware.budgetplannerpro.R;
 import com.twansoftware.budgetplannerpro.entity.Budget;
 import com.twansoftware.budgetplannerpro.entity.Credit;
@@ -52,6 +53,11 @@ public class BudgetSummaryFragment extends RoboFragment {
     @InjectView(R.id.manage_budget_largest_debit_amount)
     private TextView largestDebitAmount;
 
+    /** Incremented on every view creation/destruction to invalidate stale callbacks. */
+    private volatile int viewGeneration = 0;
+
+    private Thread updateThread;
+
     public static BudgetSummaryFragment instantiate(final Long budgetId) {
         final BudgetSummaryFragment budgetSummaryFragment = new BudgetSummaryFragment();
         final Bundle bundle = new Bundle();
@@ -73,35 +79,64 @@ public class BudgetSummaryFragment extends RoboFragment {
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        viewGeneration++;
         update();
     }
 
+    @Override
+    public void onDestroyView() {
+        viewGeneration++;
+        if (updateThread != null) {
+            updateThread.interrupt();
+        }
+        super.onDestroyView();
+    }
+
     public void update() {
-        final SherlockFragmentActivity sherlockFragmentActivity = (SherlockFragmentActivity) getActivity();
-        sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        if (getActivity() == null) return;
+        final SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
+        activity.setSupportProgressBarIndeterminateVisibility(true);
+        final int gen = viewGeneration;
+        updateThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 final Budget budget = budgetService.loadBudgetById(budgetId);
-                sherlockFragmentActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Ln.d("Loading budget for summary fragment...");
-                        final Resources resources = sherlockFragmentActivity.getResources();
-                        TextViewUtil.setupCurrencyTextView(balance, resources, budget.calculateBalance());
-                        TextViewUtil.setupCurrencyTextView(startingBalance, resources, budget.getStartingBalance());
-                        TextViewUtil.setupCurrencyTextView(creditsAmount, resources, budget.getCreditsTotal());
-                        TextViewUtil.setupCurrencyTextView(debitsAmount, resources, budget.getDebitsTotal());
-                        final Credit largestCredit = budget.getLargestCredit();
-                        largestCreditDescription.setText(largestCredit.getDescription());
-                        TextViewUtil.setupCurrencyTextView(largestCreditAmount, resources, largestCredit.getBalanceDelta());
-                        final Debit largestDebit = budget.getLargestDebit();
-                        largestDebitDescription.setText(largestDebit.getDescription());
-                        TextViewUtil.setupCurrencyTextView(largestDebitAmount, resources, largestDebit.getBalanceDelta());
-                        sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(false);
-                    }
-                });
+                activity.runOnUiThread(SafeUiCallback.uiCallback(gen,
+                        new SafeUiCallback.GenerationProvider() {
+                            @Override
+                            public int getViewGeneration() {
+                                return viewGeneration;
+                            }
+                        },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!isAdded() || getActivity() == null) return;
+                                // Guard against null budget from database
+                                if (budget == null) {
+                                    Ln.w("Budget not found for id %d, skipping summary update", budgetId);
+                                    ((SherlockFragmentActivity) getActivity())
+                                            .setSupportProgressBarIndeterminateVisibility(false);
+                                    return;
+                                }
+                                Ln.d("Loading budget for summary fragment...");
+                                final Resources resources = getActivity().getResources();
+                                TextViewUtil.setupCurrencyTextView(balance, resources, budget.calculateBalance());
+                                TextViewUtil.setupCurrencyTextView(startingBalance, resources, budget.getStartingBalance());
+                                TextViewUtil.setupCurrencyTextView(creditsAmount, resources, budget.getCreditsTotal());
+                                TextViewUtil.setupCurrencyTextView(debitsAmount, resources, budget.getDebitsTotal());
+                                final Credit largestCredit = budget.getLargestCredit();
+                                largestCreditDescription.setText(largestCredit.getDescription());
+                                TextViewUtil.setupCurrencyTextView(largestCreditAmount, resources, largestCredit.getBalanceDelta());
+                                final Debit largestDebit = budget.getLargestDebit();
+                                largestDebitDescription.setText(largestDebit.getDescription());
+                                TextViewUtil.setupCurrencyTextView(largestDebitAmount, resources, largestDebit.getBalanceDelta());
+                                ((SherlockFragmentActivity) getActivity())
+                                        .setSupportProgressBarIndeterminateVisibility(false);
+                            }
+                        }));
             }
-        }).start();
+        });
+        updateThread.start();
     }
 }

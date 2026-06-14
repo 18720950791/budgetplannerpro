@@ -17,6 +17,7 @@ import com.twansoftware.budgetplannerpro.service.BudgetService;
 import com.twansoftware.budgetplannerpro.ui.ManageBudgetActivity;
 import com.twansoftware.budgetplannerpro.ui.ManageBudgetTabletActivity;
 import com.twansoftware.budgetplannerpro.util.EnvironmentUtil;
+import com.twansoftware.budgetplannerpro.util.SafeUiCallback;
 import roboguice.fragment.RoboListFragment;
 
 import javax.inject.Inject;
@@ -31,6 +32,12 @@ public class BudgetsListFragment extends RoboListFragment {
 
     private BudgetsAdapter budgetsAdapter;
 
+    /** Incremented on every view creation/destruction to invalidate stale callbacks. */
+    private volatile int viewGeneration = 0;
+
+    private Thread loadThread;
+    private Thread addThread;
+
     public static BudgetsListFragment instantiate() {
         return new BudgetsListFragment();
     }
@@ -38,6 +45,7 @@ public class BudgetsListFragment extends RoboListFragment {
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        viewGeneration++;
         budgetsAdapter = new BudgetsAdapter(getActivity(), budgets);
         setListAdapter(budgetsAdapter);
         getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -51,25 +59,47 @@ public class BudgetsListFragment extends RoboListFragment {
         loadBudgetsFromDatabase();
     }
 
+    @Override
+    public void onDestroyView() {
+        viewGeneration++;
+        if (loadThread != null) {
+            loadThread.interrupt();
+        }
+        if (addThread != null) {
+            addThread.interrupt();
+        }
+        super.onDestroyView();
+    }
+
     private void loadBudgetsFromDatabase() {
-        final SherlockFragmentActivity sherlockFragmentActivity = (SherlockFragmentActivity) getActivity();
-        sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        final SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
+        activity.setSupportProgressBarIndeterminateVisibility(true);
+        final int gen = viewGeneration;
+        loadThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                final List<Budget> budgets = budgetService.loadAllBudgets();
-                final List<Budget> fragmentBudgets = BudgetsListFragment.this.budgets;
-                sherlockFragmentActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        fragmentBudgets.clear();
-                        fragmentBudgets.addAll(budgets);
-                        sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(false);
-                        BudgetsListFragment.this.budgetsAdapter.notifyDataSetChanged();
-                    }
-                });
+                final List<Budget> loaded = budgetService.loadAllBudgets();
+                activity.runOnUiThread(SafeUiCallback.uiCallback(gen,
+                        new SafeUiCallback.GenerationProvider() {
+                            @Override
+                            public int getViewGeneration() {
+                                return viewGeneration;
+                            }
+                        },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!isAdded() || getActivity() == null) return;
+                                budgets.clear();
+                                budgets.addAll(loaded);
+                                ((SherlockFragmentActivity) getActivity())
+                                        .setSupportProgressBarIndeterminateVisibility(false);
+                                budgetsAdapter.notifyDataSetChanged();
+                            }
+                        }));
             }
-        }).start();
+        });
+        loadThread.start();
     }
 
     @Override
@@ -89,22 +119,36 @@ public class BudgetsListFragment extends RoboListFragment {
     }
 
     public void addBudget(final Budget budget) {
+        if (getActivity() == null) return;
         getActivity().setProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        final int gen = viewGeneration;
+        addThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 final Budget newBudget = budgetService.saveBudget(budget);
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        budgets.add(newBudget);
-                        getActivity().setProgressBarIndeterminateVisibility(false);
-                        budgetsAdapter.notifyDataSetChanged();
-                        Toast.makeText(getActivity(), R.string.budget_saved_toast, Toast.LENGTH_LONG).show();
-                    }
-                });
+                final android.app.Activity act = getActivity();
+                if (act == null) return;
+                act.runOnUiThread(SafeUiCallback.uiCallback(gen,
+                        new SafeUiCallback.GenerationProvider() {
+                            @Override
+                            public int getViewGeneration() {
+                                return viewGeneration;
+                            }
+                        },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!isAdded() || getActivity() == null) return;
+                                budgets.add(newBudget);
+                                getActivity().setProgressBarIndeterminateVisibility(false);
+                                budgetsAdapter.notifyDataSetChanged();
+                                Toast.makeText(getActivity(),
+                                        R.string.budget_saved_toast, Toast.LENGTH_LONG).show();
+                            }
+                        }));
             }
-        }).start();
+        });
+        addThread.start();
     }
 
     private class BudgetLongClickCallback implements ActionMode.Callback {

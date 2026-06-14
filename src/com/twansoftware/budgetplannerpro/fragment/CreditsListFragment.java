@@ -14,6 +14,7 @@ import com.twansoftware.budgetplannerpro.callback.TransactionActionModeCallback;
 import com.twansoftware.budgetplannerpro.entity.Credit;
 import com.twansoftware.budgetplannerpro.iface.OnCreditDeletedListener;
 import com.twansoftware.budgetplannerpro.service.BudgetService;
+import com.twansoftware.budgetplannerpro.util.SafeUiCallback;
 import com.twansoftware.budgetplannerpro.util.TransactionType;
 import roboguice.fragment.RoboListFragment;
 
@@ -32,6 +33,12 @@ public class CreditsListFragment extends RoboListFragment {
 
     @Inject
     private BudgetService budgetService;
+
+    /** Incremented on every view creation/destruction to invalidate stale callbacks. */
+    private volatile int viewGeneration = 0;
+
+    private Thread fetchThread;
+    private Thread deleteThread;
 
     public static CreditsListFragment instantiate(final long budgetId) {
         final CreditsListFragment creditsListFragment = new CreditsListFragment();
@@ -55,28 +62,52 @@ public class CreditsListFragment extends RoboListFragment {
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        viewGeneration++;
         fetchCredits();
         setListAdapter(creditsAdapter);
     }
 
+    @Override
+    public void onDestroyView() {
+        viewGeneration++;
+        if (fetchThread != null) {
+            fetchThread.interrupt();
+        }
+        if (deleteThread != null) {
+            deleteThread.interrupt();
+        }
+        super.onDestroyView();
+    }
+
     private void fetchCredits() {
-        final SherlockFragmentActivity sherlockFragmentActivity = (SherlockFragmentActivity) getActivity();
-        sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        final SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
+        activity.setSupportProgressBarIndeterminateVisibility(true);
+        final int gen = viewGeneration;
+        fetchThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 final List<Credit> newCredits = budgetService.loadCreditsForBudget(budgetId);
-                sherlockFragmentActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        credits.clear();
-                        credits.addAll(newCredits);
-                        sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(false);
-                        creditsAdapter.notifyDataSetChanged();
-                    }
-                });
+                activity.runOnUiThread(SafeUiCallback.uiCallback(gen,
+                        new SafeUiCallback.GenerationProvider() {
+                            @Override
+                            public int getViewGeneration() {
+                                return viewGeneration;
+                            }
+                        },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!isAdded() || getActivity() == null) return;
+                                credits.clear();
+                                credits.addAll(newCredits);
+                                ((SherlockFragmentActivity) getActivity())
+                                        .setSupportProgressBarIndeterminateVisibility(false);
+                                creditsAdapter.notifyDataSetChanged();
+                            }
+                        }));
             }
-        }).start();
+        });
+        fetchThread.start();
     }
 
     @Override
@@ -103,18 +134,30 @@ public class CreditsListFragment extends RoboListFragment {
         credits.remove(selected);
         creditsAdapter.notifyDataSetChanged();
         Toast.makeText(getActivity(), R.string.credit_deleted_toast, Toast.LENGTH_LONG).show();
-        new Thread(new Runnable() {
+        final int gen = viewGeneration;
+        deleteThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 budgetService.deleteCredit(selected);
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ((OnCreditDeletedListener) getActivity()).onCreditDeleted(selected);
-                    }
-                });
+                final android.app.Activity act = getActivity();
+                if (act == null) return;
+                act.runOnUiThread(SafeUiCallback.uiCallback(gen,
+                        new SafeUiCallback.GenerationProvider() {
+                            @Override
+                            public int getViewGeneration() {
+                                return viewGeneration;
+                            }
+                        },
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                if (!isAdded() || getActivity() == null) return;
+                                ((OnCreditDeletedListener) getActivity()).onCreditDeleted(selected);
+                            }
+                        }));
             }
-        }).start();
+        });
+        deleteThread.start();
     }
 
     public void addCredit(final Credit credit) {
