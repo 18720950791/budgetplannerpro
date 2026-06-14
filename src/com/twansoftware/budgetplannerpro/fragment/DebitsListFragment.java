@@ -14,6 +14,7 @@ import com.twansoftware.budgetplannerpro.callback.TransactionActionModeCallback;
 import com.twansoftware.budgetplannerpro.entity.Debit;
 import com.twansoftware.budgetplannerpro.iface.OnDebitDeletedListener;
 import com.twansoftware.budgetplannerpro.service.BudgetService;
+import com.twansoftware.budgetplannerpro.util.FragmentTaskGuard;
 import com.twansoftware.budgetplannerpro.util.TransactionType;
 import roboguice.fragment.RoboListFragment;
 import roboguice.util.Ln;
@@ -33,6 +34,10 @@ public class DebitsListFragment extends RoboListFragment {
 
     @Inject
     private BudgetService budgetService;
+
+    private final FragmentTaskGuard taskGuard = new FragmentTaskGuard();
+
+    private Thread currentTask;
 
     public static DebitsListFragment instantiate(final long budgetId) {
         final DebitsListFragment debitsListFragment = new DebitsListFragment();
@@ -59,19 +64,33 @@ public class DebitsListFragment extends RoboListFragment {
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Ln.d("onViewCreated DebitsListFragment");
+        taskGuard.onViewActive();
         fetchDebits();
+    }
+
+    @Override
+    public void onDestroyView() {
+        taskGuard.onViewDestroyed();
+        if (currentTask != null) {
+            currentTask.interrupt();
+        }
+        super.onDestroyView();
     }
 
     private void fetchDebits() {
         final SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
+        final int token = taskGuard.currentToken();
         activity.setSupportProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        final Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 final List<Debit> newDebits = budgetService.loadDebitsForBudget(budgetId);
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if (!taskGuard.shouldDeliver(token) || !isAdded() || getView() == null) {
+                            return;
+                        }
                         debits.clear();
                         debits.addAll(newDebits);
                         activity.setSupportProgressBarIndeterminateVisibility(false);
@@ -79,7 +98,9 @@ public class DebitsListFragment extends RoboListFragment {
                     }
                 });
             }
-        }).start();
+        });
+        currentTask = worker;
+        worker.start();
     }
 
     @Override
@@ -108,18 +129,25 @@ public class DebitsListFragment extends RoboListFragment {
         debits.remove(selected);
         debitsAdapter.notifyDataSetChanged();
         Toast.makeText(getActivity(), R.string.debit_deleted_toast, Toast.LENGTH_LONG).show();
-        new Thread(new Runnable() {
+        final SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
+        final int token = taskGuard.currentToken();
+        final Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 budgetService.deleteDebit(selected);
-                getActivity().runOnUiThread(new Runnable() {
+                activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ((OnDebitDeletedListener) getActivity()).onDebitDeleted(selected);
+                        if (!taskGuard.shouldDeliver(token) || !isAdded() || getView() == null) {
+                            return;
+                        }
+                        ((OnDebitDeletedListener) activity).onDebitDeleted(selected);
                     }
                 });
             }
-        }).start();
+        });
+        currentTask = worker;
+        worker.start();
     }
 
     public void addDebit(final Debit debit) {

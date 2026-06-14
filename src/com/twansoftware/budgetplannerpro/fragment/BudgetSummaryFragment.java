@@ -13,6 +13,7 @@ import com.twansoftware.budgetplannerpro.entity.Budget;
 import com.twansoftware.budgetplannerpro.entity.Credit;
 import com.twansoftware.budgetplannerpro.entity.Debit;
 import com.twansoftware.budgetplannerpro.util.TextViewUtil;
+import com.twansoftware.budgetplannerpro.util.FragmentTaskGuard;
 import roboguice.fragment.RoboFragment;
 import roboguice.inject.InjectView;
 import roboguice.util.Ln;
@@ -27,6 +28,10 @@ public class BudgetSummaryFragment extends RoboFragment {
 
     @Inject
     private BudgetService budgetService;
+
+    private final FragmentTaskGuard taskGuard = new FragmentTaskGuard();
+
+    private Thread currentTask;
 
     @InjectView(R.id.manage_budget_balance)
     private TextView balance;
@@ -73,19 +78,33 @@ public class BudgetSummaryFragment extends RoboFragment {
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        taskGuard.onViewActive();
         update();
+    }
+
+    @Override
+    public void onDestroyView() {
+        taskGuard.onViewDestroyed();
+        if (currentTask != null) {
+            currentTask.interrupt();
+        }
+        super.onDestroyView();
     }
 
     public void update() {
         final SherlockFragmentActivity sherlockFragmentActivity = (SherlockFragmentActivity) getActivity();
+        final int token = taskGuard.currentToken();
         sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        final Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 final Budget budget = budgetService.loadBudgetById(budgetId);
                 sherlockFragmentActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if (!taskGuard.shouldDeliver(token) || !isAdded() || getView() == null) {
+                            return;
+                        }
                         Ln.d("Loading budget for summary fragment...");
                         final Resources resources = sherlockFragmentActivity.getResources();
                         TextViewUtil.setupCurrencyTextView(balance, resources, budget.calculateBalance());
@@ -102,6 +121,8 @@ public class BudgetSummaryFragment extends RoboFragment {
                     }
                 });
             }
-        }).start();
+        });
+        currentTask = worker;
+        worker.start();
     }
 }

@@ -14,6 +14,7 @@ import com.twansoftware.budgetplannerpro.callback.TransactionActionModeCallback;
 import com.twansoftware.budgetplannerpro.entity.Credit;
 import com.twansoftware.budgetplannerpro.iface.OnCreditDeletedListener;
 import com.twansoftware.budgetplannerpro.service.BudgetService;
+import com.twansoftware.budgetplannerpro.util.FragmentTaskGuard;
 import com.twansoftware.budgetplannerpro.util.TransactionType;
 import roboguice.fragment.RoboListFragment;
 
@@ -32,6 +33,10 @@ public class CreditsListFragment extends RoboListFragment {
 
     @Inject
     private BudgetService budgetService;
+
+    private final FragmentTaskGuard taskGuard = new FragmentTaskGuard();
+
+    private Thread currentTask;
 
     public static CreditsListFragment instantiate(final long budgetId) {
         final CreditsListFragment creditsListFragment = new CreditsListFragment();
@@ -55,20 +60,34 @@ public class CreditsListFragment extends RoboListFragment {
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        taskGuard.onViewActive();
         fetchCredits();
         setListAdapter(creditsAdapter);
     }
 
+    @Override
+    public void onDestroyView() {
+        taskGuard.onViewDestroyed();
+        if (currentTask != null) {
+            currentTask.interrupt();
+        }
+        super.onDestroyView();
+    }
+
     private void fetchCredits() {
         final SherlockFragmentActivity sherlockFragmentActivity = (SherlockFragmentActivity) getActivity();
+        final int token = taskGuard.currentToken();
         sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(true);
-        new Thread(new Runnable() {
+        final Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 final List<Credit> newCredits = budgetService.loadCreditsForBudget(budgetId);
                 sherlockFragmentActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        if (!taskGuard.shouldDeliver(token) || !isAdded() || getView() == null) {
+                            return;
+                        }
                         credits.clear();
                         credits.addAll(newCredits);
                         sherlockFragmentActivity.setSupportProgressBarIndeterminateVisibility(false);
@@ -76,7 +95,9 @@ public class CreditsListFragment extends RoboListFragment {
                     }
                 });
             }
-        }).start();
+        });
+        currentTask = worker;
+        worker.start();
     }
 
     @Override
@@ -103,18 +124,25 @@ public class CreditsListFragment extends RoboListFragment {
         credits.remove(selected);
         creditsAdapter.notifyDataSetChanged();
         Toast.makeText(getActivity(), R.string.credit_deleted_toast, Toast.LENGTH_LONG).show();
-        new Thread(new Runnable() {
+        final SherlockFragmentActivity activity = (SherlockFragmentActivity) getActivity();
+        final int token = taskGuard.currentToken();
+        final Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 budgetService.deleteCredit(selected);
-                getActivity().runOnUiThread(new Runnable() {
+                activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ((OnCreditDeletedListener) getActivity()).onCreditDeleted(selected);
+                        if (!taskGuard.shouldDeliver(token) || !isAdded() || getView() == null) {
+                            return;
+                        }
+                        ((OnCreditDeletedListener) activity).onCreditDeleted(selected);
                     }
                 });
             }
-        }).start();
+        });
+        currentTask = worker;
+        worker.start();
     }
 
     public void addCredit(final Credit credit) {

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/alicode/ali/repo-20/claude2/$HOME/.m2/**)",
+      "Bash(find . -path *maven-surefire-plugin* -name *.jar)",
+      "Bash(find . -path *surefire* -name *.jar)",
+      "Bash(find . -path *maven-compiler-plugin* -name *.jar)",
+      "Bash(find . -path *android-maven-plugin*)"
+    ]
+  }
+}
