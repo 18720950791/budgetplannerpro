@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:orientation="horizontal"
+              android:paddingLeft="5dp"
+              android:paddingRight="5dp"
+              android:layout_height="wrap_content">
+    <EditText
+            android:id="@+id/create_budget_dialog_budget_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.67"
+            android:hint="@string/create_budget_dialog_name_hint"
+            android:imeOptions="actionNext"
+            />
+    <EditText
+            android:id="@+id/create_budget_dialog_budget_starting_balance"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.33"
+            android:inputType="numberDecimal|numberSigned"
+            />
+
+</LinearLayout>

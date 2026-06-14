@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Budget Planner Pro</string>
+
+    <!-- Shared Strings -->
+    <string name="credit_word">Credit</string>
+    <string name="debit_word">Debit</string>
+
+    <!-- Main Activity -->
+    <string name="create_budget_menu_title">New Budget</string>
+    <string name="new_budget_title">New Budget</string>
+    <string name="new_budget_message">Input the budget name and starting balance.</string>
+    <string name="new_budget_dialog_create_text">Create</string>
+    <string name="new_budget_dialog_cancel_text">Cancel</string>
+    <string name="create_budget_dialog_name_hint">Budget Name</string>
+    <string name="delete_budget_text">Delete Budget</string>
+    <string name="budget_saved_toast">Budget saved.</string>
+    <string name="budget_deleted_toast">Budget deleted.</string>
+    <string name="one_budget_required_toast">You must have at least one budget!</string>
+
+    <!-- Edit Budget Activity -->
+    <string name="add_transaction_menu_option_text">Add Transaction</string>
+    <string name="no_transactions_found_text">No transactions found.</string>
+    <string name="debits_title">Debits</string>
+    <string name="credits_title">Credits</string>
+    <string name="summary_title">Summary</string>
+    <string name="edit_transaction_dialog_name_hint">Description</string>
+    <string name="save_transaction_text">Save</string>
+    <string name="cancel_transaction_text">Cancel</string>
+    <string name="credit_saved_toast">Credit saved.</string>
+    <string name="debit_saved_toast">Debit saved.</string>
+    <string name="total_transaction_amount_label">Total:</string>
+    <string name="manage_budget_balance_label">Balance:</string>
+    <string name="manage_budget_starting_balance_label">Starting:</string>
+    <string name="manage_budget_credits_label">Credits:</string>
+    <string name="manage_budget_debits_label">Debits:</string>
+    <string name="largest_credit_label">Largest Credit:</string>
+    <string name="largest_debit_label">Largest Debit:</string>
+    <string name="new_credit_title">Add Credit</string>
+    <string name="new_debit_title">Add Debit</string>
+    <string name="new_transaction_message">Enter a description and amount.</string>
+    <string name="delete_credit_text">Delete Credit</string>
+    <string name="delete_debit_text">Delete Debit</string>
+    <string name="credit_deleted_toast">Credit deleted.</string>
+    <string name="debit_deleted_toast">Debit deleted.</string>
+    <string name="what_kind_of_transaction_dialog_message">What kind of transaction would you like to add?</string>
+    <string name="invalid_amount_entered_toast">Transaction amount required.</string>
+</resources>

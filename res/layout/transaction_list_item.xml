@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:paddingTop="@dimen/transaction_list_item_paddingTop"
+              android:paddingBottom="@dimen/transaction_list_item_paddingBottom"
+              android:paddingLeft="@dimen/transaction_list_item_paddingLeft"
+              android:paddingRight="@dimen/transaction_list_item_paddingRight"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+    <TextView
+            android:id="@+id/transaction_list_item_description"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/transaction_list_item_text_size"
+            />
+    <TextView
+            android:id="@+id/transaction_list_item_amount"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:gravity="center|right"
+            android:textSize="@dimen/transaction_list_item_amount_text_size"
+            />
+</LinearLayout>

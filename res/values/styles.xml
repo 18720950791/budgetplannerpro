@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="summary_currency">
+        <item name="android:textSize">@dimen/manage_budget_standard_value</item>
+        <item name="android:gravity">left</item>
+        <item name="android:paddingLeft">4dp</item>
+    </style>
+    <style name="summary_label">
+        <item name="android:textSize">@dimen/manage_budget_standard_label</item>
+        <item name="android:gravity">right|center</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="summary_label_big">
+        <item name="android:textSize">@dimen/manage_budget_largest_label</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>

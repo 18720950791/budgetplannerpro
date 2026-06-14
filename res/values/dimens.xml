@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="transaction_list_item_text_size">18sp</dimen>
+    <dimen name="transaction_list_item_paddingTop">3dp</dimen>
+    <dimen name="transaction_list_item_paddingBottom">3dp</dimen>
+    <dimen name="transaction_list_item_paddingLeft">6dp</dimen>
+    <dimen name="transaction_list_item_paddingRight">6dp</dimen>
+    <dimen name="transaction_list_item_amount_text_size">16sp</dimen>
+    <dimen name="table_row_padding">5dp</dimen>
+    <dimen name="balance_text_size">26sp</dimen>
+    <dimen name="manage_budget_standard_label">18sp</dimen>
+    <dimen name="manage_budget_standard_value">16sp</dimen>
+    <dimen name="manage_budget_largest_label">16sp</dimen>
+    <dimen name="manage_budget_largest_value">16sp</dimen>
+</resources>
