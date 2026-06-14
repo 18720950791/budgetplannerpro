@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Test-only Maven POM.
+
+  This POM uses 'jar' packaging to bypass the Android Maven Plugin lifecycle,
+  which requires ANDROID_HOME.  It pulls the Android API stub jar from Maven
+  Central so that source code referencing android.* can compile.
+
+  Only the core DAO / entity / iface packages are compiled (UI and fragment
+  classes are excluded because they depend on apklib libraries that have no
+  plain-jar equivalent on Maven Central).
+
+  Run all tests:
+    mvn -f pom-test.xml test
+
+  Run a single test class:
+    mvn -f pom-test.xml test -Dtest=BudgetDAOTest
+
+  Requirements:
+    - JDK 8+
+    - Internet access (first run, to download dependencies)
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.twansoftware</groupId>
+    <artifactId>budgetplannerpro-tests</artifactId>
+    <version>1.30</version>
+    <packaging>jar</packaging>
+    <name>Budget Planner Pro - Tests</name>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Android API stubs (concrete classes throw RuntimeException; fine for Mockito) -->
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>android</artifactId>
+            <version>4.1.1.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- RoboGuice (provides javax.inject transitively via Guice) -->
+        <dependency>
+            <groupId>org.roboguice</groupId>
+            <artifactId>roboguice</artifactId>
+            <version>2.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- JUnit 4 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito (mock final classes via inline mock-maker) -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>4.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>4.11.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Main source: same as the project's src/ directory -->
+        <sourceDirectory>src</sourceDirectory>
+
+        <!-- Test source: test/ directory -->
+        <testSourceDirectory>test</testSourceDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                    <!-- Only compile the core packages needed for DAO tests.
+                         UI / fragment / adapter classes depend on apklib libs
+                         that are not available as plain jar dependencies. -->
+                    <includes>
+                        <include>com/twansoftware/budgetplannerpro/dao/**</include>
+                        <include>com/twansoftware/budgetplannerpro/entity/**</include>
+                        <include>com/twansoftware/budgetplannerpro/iface/**</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

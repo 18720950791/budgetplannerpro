@@ -110,7 +110,7 @@ public class BudgetDAO extends SQLiteOpenHelper implements CursorConvertable<Bud
 
     @Override
     public Budget cursorToObject(final Cursor cursor) {
-        return new Budget((long) cursor.getInt(0), cursor.getString(1), cursor.getFloat(2));
+        return new Budget(cursor.getLong(0), cursor.getString(1), cursor.getFloat(2));
     }
 
     @Override

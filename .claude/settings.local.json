@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where java:*)",
+      "Bash(where mvn:*)",
+      "Bash(where javac:*)",
+      "Bash(\"C:\\\\Program Files\\\\Eclipse Adoptium\\\\jdk-8.0.492.9-hotspot\\\\bin\\\\java.exe\" -version 2>&1)",
+      "Bash(where choco:*)",
+      "Bash(where scoop:*)",
+      "Read(//c/Program Files/Eclipse Adoptium/**)",
+      "Bash(echo $HOME)",
+      "Bash(mkdir -p /c/Users/ouyang/tools)",
+      "Bash(curl -fSL \"https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip\" -o /c/Users/ouyang/tools/maven.zip)",
+      "Bash(curl -fSL \"https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.zip\" -o /c/Users/ouyang/tools/maven.zip)",
+      "Bash(curl -fSL \"https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.zip\" -o /c/Users/ouyang/tools/maven.zip)",
+      "Bash(curl -fSL \"https://archive.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.zip\" -o /c/Users/ouyang/tools/maven.zip)",
+      "Bash(\"C:/Program Files/Eclipse Adoptium/jdk-8.0.492.9-hotspot/bin/javac\" BudgetDAOCursorTruncationTest.java)",
+      "Bash(\"C:/Program Files/Eclipse Adoptium/jdk-8.0.492.9-hotspot/bin/javac\" -encoding UTF-8 BudgetDAOCursorTruncationTest.java)",
+      "Bash(\"C:/Program Files/Eclipse Adoptium/jdk-8.0.492.9-hotspot/bin/java\" -Dfile.encoding=UTF-8 BudgetDAOCursorTruncationTest)",
+      "Bash(curl -fSL --connect-timeout 15 --max-time 120 \"https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz\" -o \"C:/Users/ouyang/tools/maven.tar.gz\")",
+      "Bash(curl -fsSL --connect-timeout 10 \"https://dlcdn.apache.org/maven/maven-3/\")",
+      "Bash(unzip -o -q maven.zip)",
+      "Bash(ls -d apache-maven-*)",
+      "Bash(export JAVA_HOME=\"C:/Program Files/Eclipse Adoptium/jdk-8.0.492.9-hotspot\")",
+      "Bash(export MVN=\"C:/Users/ouyang/tools/apache-maven-3.9.16/bin/mvn\")",
+      "Bash(\"$MVN\" -version)",
+      "Bash(\"C:/Users/ouyang/tools/apache-maven-3.9.16/bin/mvn\" -f \"D:/alicode/ali/repo-20/qwen1/pom-test.xml\" test -Dtest=BudgetDAOTest)"
+    ]
+  }
+}

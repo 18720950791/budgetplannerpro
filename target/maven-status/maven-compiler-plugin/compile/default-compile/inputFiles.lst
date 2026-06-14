@@ -1,0 +1,13 @@
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\dao\DebitsDAO.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\dao\BudgetDAO.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\OnDebitDeletedListener.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\entity\Debit.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\OnDebitAddedListener.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\OnBudgetAddedListener.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\OnCreditAddedListener.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\entity\Credit.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\Transaction.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\dao\CreditsDAO.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\entity\Budget.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\CursorConvertable.java
+D:\alicode\ali\repo-20\qwen1\src\com\twansoftware\budgetplannerpro\iface\OnCreditDeletedListener.java

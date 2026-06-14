@@ -1,0 +1,15 @@
+com\twansoftware\budgetplannerpro\dao\BudgetDAO.class
+com\twansoftware\budgetplannerpro\dao\CreditsDAO.class
+com\twansoftware\budgetplannerpro\iface\OnDebitAddedListener.class
+com\twansoftware\budgetplannerpro\entity\Budget.class
+com\twansoftware\budgetplannerpro\iface\OnBudgetAddedListener.class
+com\twansoftware\budgetplannerpro\iface\Transaction.class
+com\twansoftware\budgetplannerpro\iface\OnDebitDeletedListener.class
+com\twansoftware\budgetplannerpro\entity\Budget$1.class
+com\twansoftware\budgetplannerpro\entity\Budget$2.class
+com\twansoftware\budgetplannerpro\iface\CursorConvertable.class
+com\twansoftware\budgetplannerpro\dao\DebitsDAO.class
+com\twansoftware\budgetplannerpro\entity\Debit.class
+com\twansoftware\budgetplannerpro\iface\OnCreditAddedListener.class
+com\twansoftware\budgetplannerpro\iface\OnCreditDeletedListener.class
+com\twansoftware\budgetplannerpro\entity\Credit.class
